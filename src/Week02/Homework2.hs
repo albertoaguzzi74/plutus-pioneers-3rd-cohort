@@ -43,7 +43,7 @@ PlutusTx.unstableMakeIsData ''MyRedeemer
 {-# INLINABLE mkValidator #-}
 -- This should validate if and only if the two Booleans in the redeemer are equal!
 mkValidator :: () -> MyRedeemer -> ScriptContext -> Bool
-mkValidator _ (MyRedeemer a b) _ = traceIfFalse "wrong redeemer" $ a == b
+mkValidator _ (MyRedeemer{flag1,flag2}) _ = traceIfFalse "wrong redeemer" $ flag1 == flag2
 
 data Typed
 instance Scripts.ValidatorTypes Typed where
@@ -78,13 +78,13 @@ give amount = do
     logInfo @String $ printf "made a gift of %d lovelace" amount
 
 grab :: forall w s e. AsContractError e => MyRedeemer -> Contract w s e ()
-grab r = do
+grab MyRedeemer{flag1,flag2} = do
     utxos <- utxosAt scrAddress
     let orefs   = fst <$> Map.toList utxos
         lookups = Constraints.unspentOutputs utxos      <>
                   Constraints.otherScript validator
         tx :: TxConstraints Void Void
-        tx      = mconcat [mustSpendScriptOutput oref $ Redeemer $ PlutusTx.toBuiltinData (MyRedeemer a b) | oref <- orefs]
+        tx      = mconcat [mustSpendScriptOutput oref $ Redeemer $ PlutusTx.toBuiltinData (MyRedeemer{flag1,flag2}) | oref <- orefs]
     ledgerTx <- submitTxConstraintsWith @Void lookups tx
     void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
     logInfo @String $ "collected gifts"
