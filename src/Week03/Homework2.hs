@@ -44,10 +44,10 @@ mkValidator p dat _ ctx = traceIfFalse "beneficiary's signature missing" signedB
     info = scriptContextTxInfo ctx
 
     signedByBeneficiary :: Bool
-    signedByBeneficiary = txSignedBy info $ unPaymentPubKeyHash $ p
+    signedByBeneficiary = txSignedBy info $ unPaymentPubKeyHash p
 
     deadlineReached :: Bool
-    deadlineReached = contains (from $ dat) $ txInfoValidRange info
+    deadlineReached = contains (from dat) $ txInfoValidRange info
 
 data Vesting
 instance Scripts.ValidatorTypes Vesting where
